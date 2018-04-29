@@ -15,4 +15,4 @@ arithmetic exercise
 
 3.随机怎么生成
 
-4.注意DAG图中的细节图
+4.注意生成DAG图中的细节

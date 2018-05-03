@@ -16,8 +16,16 @@
 #include <queue>
 #include <stack>
 #include "windows.h"
+struct helpsort{
+	int id=-1;//本身id
+	int time=-1;//原id
+};
+//int *sort;//finish time 排序
 node *graph;
+node *graphT;
 nodePro* pro;
+nodePro* Tpro;
+int Time2nd=0;
 bool change=false;
 Arithmex1::Arithmex1(int ver,int edge) {
 	// TODO Auto-generated constructor stub
@@ -49,6 +57,20 @@ bool Arithmex1::insertEdge(int a,int b){//插入边
 	return false;
 }
 
+bool Arithmex1::insertEdgeT(int a,int b){//插入边
+	node* current=&graphT[a-1];
+	while(current->next!=NULL){
+		current=current->next;
+	}
+	node *newnode=new node();
+	newnode->init(1,b);
+	current->next=newnode;
+	graphT[b-1].ini++;
+	return true;
+
+
+}
+
 bool Arithmex1::eraseEdge(int a,int b){//删除边
 	if(graph[a-1].existedge(b)){
 		node* current=&graph[a-1];
@@ -72,7 +94,7 @@ bool Arithmex1::eraseEdge(int a,int b){//删除边
 }
 bool Arithmex1::create(){
 //	cout<<n<<e;
-		srand(10);//设置随机数种子
+		srand(15);//设置随机数种子
 //	srand((unsigned)time(NULL));
 		graph=new node[n];//是一个装了node（首）的数组
 		for(int i=0;i<n;i++){
@@ -93,10 +115,40 @@ bool Arithmex1::create(){
 			j++;
 		}
 }
+
+bool Arithmex1::transpose(){
+	graphT=new node[n];
+	for(int i=0;i<n;i++){
+		graphT[i].init(1,i+1);//于是附上初值，权重为1，编号为i+1;
+	}
+	for(int i=0;i<n;i++){
+		node* current=&graph[i];
+		while(current->next!=NULL){
+//			cout<<current->next->id<<" ";
+//			void print();
+			insertEdgeT(current->next->id,i+1);
+			current=current->next;
+		}
+//		cout<<endl;
+	}
+}
+
 void Arithmex1::print(){
 	for(int i=0;i<n;i++){
-		cout<<graph[i].id<<"==>  ";
+		cout<<graph[i].id<<" "<<"==>  ";
 		node* current=&graph[i];
+		while(current->next!=NULL){
+			cout<<current->next->id<<" ";
+			current=current->next;
+		}
+		cout<<endl;
+	}
+}
+
+void Arithmex1::printT(){
+	for(int i=0;i<n;i++){
+		cout<<graphT[i].id<<"==>  ";
+		node* current=&graphT[i];
 		while(current->next!=NULL){
 			cout<<current->next->id<<" ";
 			current=current->next;
@@ -108,6 +160,7 @@ void Arithmex1::print(){
 void Arithmex1::dfs(int start){
 	//链表属性
 	node* current=&graph[start-1];//得到源点位置
+
 	stack<int> ppid;//记录压入栈时的先驱点
 	stack<node*> dfss;//记录压入栈的node，有一个固定的id，只需要用id与遍历
 	ppid.push(-1);//起始点先驱点为-1
@@ -126,6 +179,7 @@ void Arithmex1::dfs(int start){
 			node* current=&graph[newnode->id-1];//找到图中它的位置就可以遍历链表
 
 			int num=0;//是否变黑，只要push进去节点，说明都没有完成，完成的才变黑
+//			if(current->next==NULL||pro[current->next->id]==2)
 
 			while(current!=NULL&&current->next!=NULL){//遍历其邻接链表
 
@@ -170,9 +224,15 @@ void Arithmex1::dfs(int start){
 						tmpid=pro[tmpid-1].pid;
 					}
 				}else{
-					pro[tmpid-1].color=2;
-					pro[tmpid-1].fintime=++time;
-	//				tmpid=pro[tmpid-1].pid;
+//					pro[tmpid-1].color=2;
+//					pro[tmpid-1].fintime=++time;
+//	//				tmpid=pro[tmpid-1].pid;
+					while(tmpid!=-1){
+//														cout<<tmpid<<"pout"<<endl;
+										pro[tmpid-1].color=2;
+										pro[tmpid-1].fintime=++time;
+										tmpid=pro[tmpid-1].pid;
+									}
 				}
 			}
 		}else if(pro[newnode->id-1].color==2){//早之前已经发现
@@ -186,14 +246,21 @@ void Arithmex1::dfs(int start){
 					tmpid=pro[tmpid-1].pid;
 				}
 			}else{
-				pro[tmpid-1].color=2;
-				pro[tmpid-1].fintime=++time;
-//				tmpid=pro[tmpid-1].pid;
+//				pro[tmpid-1].color=2;
+//				pro[tmpid-1].fintime=++time;
+////				tmpid=pro[tmpid-1].pid;
+				while(tmpid!=-1){
+//									cout<<tmpid<<"pout"<<endl;
+					pro[tmpid-1].color=2;
+					pro[tmpid-1].fintime=++time;
+					tmpid=pro[tmpid-1].pid;
+				}
 			}
 		}
 
 	}
 }
+
 
 int Arithmex1::maxdis(){
 	int* maxpid;
@@ -295,8 +362,9 @@ void Arithmex1::dag(){
 		if(pro[i].color==0)
 			dfs(i+1);
 	}
-	print();
+//	print();
 }
+
 int Arithmex1::distance(int i){
 	int source=i;
 	node* current=&graph[source-1];//得到源点位置
@@ -336,15 +404,97 @@ int Arithmex1::distance(int i){
 
 
 }
+
+
+
+void Arithmex1::qldfsT(int x){
+	Tpro[x].color=1;//灰色
+	Tpro[x].distime=++Time2nd;
+	node* current=&graphT[x];//这里x没有进行+1处理，注意。
+//	cout<<x<<" ";
+	while(current->next!=NULL){
+		int temp=current->next->id-1;
+		if(Tpro[temp].color==0){
+			cout<<temp+1<<" ";
+			Tpro[temp].pid=x;
+			qldfsT(temp);
+		}
+		current=current->next;
+	}
+	Tpro[x].color=2;
+	Tpro[x].fintime=++Time2nd;
+//	cout<<endl;
+}
+//void Arithmex1::qldfs(int x){
+//	pro[x].color=1;//灰色
+//	pro[x].distime=++time;
+//	node* current=&graph[x];//这里x没有进行+1处理，注意。
+////	cout<<x<<" ";
+//	while(current->next!=NULL){
+//		int temp=current->next->id-1;
+//		if(pro[temp].color==0){
+//			cout<<temp+1<<" ";
+//			pro[temp].pid=x;
+//			dfs(temp);
+//		}
+//		current=current->next;
+//	}
+//	pro[x].color=2;
+//	pro[x].fintime=++time;
+////	cout<<endl;
+//}
+
+void Arithmex1::qiangliantong(){
+//	for(int i=0;i<n;i++){
+//		if(pro[i].color==0){
+//			qldfs(i);
+////			cout<<endl;
+////		cout<<"---------------------"<<endl;
+//		}
+//	}
+	 helpsort sort[n];
+//	 cout<<pro[0].fintime<<"[]";
+	for(int i=0;i<n;i++){
+		sort[i].time=pro[i].fintime;
+		sort[i].id=i;
+	}
+	for(int i=0;i<n;i++){//选择sort，根据时间排序
+		for(int j=i+1;j<n;j++){
+			if(sort[i].time<sort[j].time){
+				helpsort tmp=sort[j];
+				sort[j]=sort[i];
+				sort[i]=tmp;
+			}
+		}
+	}
+//	for(int j=0;j<n;j++){
+//		cout<<sort[j].id+1<<"  "<<sort[j].time<<endl;
+//	}
+	Tpro=new nodePro[n];
+	cout<<"强连通分支"<<endl;
+	for(int i=0;i<n;i++){
+		if(Tpro[sort[i].id].color==0){//按照时间顺序从后向前遍历
+			cout<<sort[i].id+1<<"-->";
+			qldfsT(sort[i].id);
+			cout<<endl;
+		cout<<"---------------------"<<endl;
+		}
+	}
+
+}
+
 int main(){
-	Arithmex1* ar=new Arithmex1(6,12);
+	Arithmex1* ar=new Arithmex1(5,3);
 	ar->create();
 	ar->print();
 	cout<<"----------------------------------------------------"<<endl;
-	ar->distance(2);
+//	ar->distance(2);
 //	cout<<ar->eraseEdge(3,27);
 	cout<<"----------------------------------------------------"<<endl;
+	ar->transpose();
 	ar->dag();
-	cout<<"最大长度为："<<ar->maxdis()<<endl;
+	ar->qiangliantong();
+//	cout<<"最大长度为："<<ar->maxdis()<<endl;
+//	ar->printT();
 	return 0;
 }

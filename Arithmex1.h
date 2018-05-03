@@ -17,6 +17,8 @@ public:
 	int color=0;//未发现
 };
 
+
+
 class Arithmex1 {
 public:
 	Arithmex1(int , int );
@@ -31,20 +33,28 @@ public:
 		int nummberofE();
 		bool create() ;//是否存在边
 		bool insertEdge(int,int);
+		bool insertEdgeT(int,int);
 			//这里应该有个edge的表示方式
 
 		bool eraseEdge(int,int);
+		bool transpose();
 		int degree(int) ;
 		int inDegree(int);
 		int outDegree(int);
 		int weight(int,int);//某一边的权重
 		int distance(int);
-		void dfs(int);
+		void dfs(int);//为dag图服务的dfs
+		void qiangliantong();
+//		void xuanzesort(int *a);
+		void qldfsT(int);
+//		void qldfs(int);
+		void quicksort(int *a,int x,int y);
 		int maxdis();
 		void dag();
 //		其他方法
 		bool directed();
 		void print();
+		void printT();
 };
 
 
